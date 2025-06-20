@@ -1,2 +1,2 @@
 # cromatografia
-Cromotografia de Papeç
+Cromotografia de Papel
