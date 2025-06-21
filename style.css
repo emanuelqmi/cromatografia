@@ -1,5 +1,4 @@
-
-       :root {
+        :root {
             --paper-width: 300px;
             --paper-height: 500px;
             --spot-size: 16px;
@@ -121,7 +120,6 @@
             font-size: 1.1em;
         }
         
-        /* --- ESTILOS ATUALIZADOS E CUSTOMIZADOS PARA O SLIDER --- */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
@@ -133,7 +131,6 @@
             cursor: pointer;
         }
 
-        /* Estilização da "bolinha" do slider (Thumb) para Chrome/Safari/Edge */
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
@@ -143,10 +140,9 @@
             border-radius: 50%;
             border: 2px solid white;
             box-shadow: 0 0 4px rgba(0,0,0,0.2);
-            margin-top: 0px; /* Centraliza a bolinha na trilha */
+            margin-top: 0px;
         }
         
-        /* Estilização da "bolinha" do slider (Thumb) para Firefox */
         input[type="range"]::-moz-range-thumb {
             width: 20px;
             height: 20px;
@@ -155,8 +151,6 @@
             border: 2px solid white;
             box-shadow: 0 0 4px rgba(0,0,0,0.2);
         }
-
-        /* --- FIM DOS ESTILOS DO SLIDER --- */
 
         .paper-container {
             display: flex;
@@ -266,4 +260,3 @@
         #removeAllSamples:disabled {
             background-color: #999;
         }
-

@@ -20,21 +20,12 @@
         const PAPER_HEIGHT = 500;
         const ORIGIN_LINE_BOTTOM = 60;
         const MAX_TRAVEL_DISTANCE = PAPER_HEIGHT - ORIGIN_LINE_BOTTOM - 25;
-        const VIRTUAL_SCALE_CM = 7.0;
-        const APOLAR_THRESHOLD = 40;
+        const VIRTUAL_SCALE_CM = 10.0;
+        const APOLAR_ZONE_THRESHOLD = 30;
 
-        /**
-         * NOVA FUNÇÃO: Atualiza o fundo do slider para o efeito de "preenchimento".
-         */
         const updateSliderBackground = (slider) => {
-            const min = slider.min;
-            const max = slider.max;
-            const value = slider.value;
-            const percentage = ((value - min) / (max - min)) * 100;
-            
-            // Define o gradiente de cor para preencher a trilha do slider
-            const color = `linear-gradient(to right, var(--accent-color) ${percentage}%, var(--primary-bg) ${percentage}%)`;
-            slider.style.background = color;
+            const percentage = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+            slider.style.background = `linear-gradient(to right, var(--accent-color) ${percentage}%, var(--primary-bg) ${percentage}%)`;
         };
 
         const createScale = () => {
@@ -65,7 +56,6 @@
                 spot.id = `sample-${sample.id}`;
                 spot.style.backgroundColor = sample.color;
                 spot.style.left = `${startPosition + index * spotSpacing}%`;
-                spot.dataset.polarity = sample.polarity;
                 paper.appendChild(spot);
             });
         };
@@ -84,8 +74,7 @@
                 colorSwatch.className = 'legend-color-swatch';
                 colorSwatch.style.backgroundColor = sample.color;
                 const textContainer = document.createElement('div');
-                let baseText = `<b>Polaridade: ${sample.polarity}%</b> (${sample.polarity < APOLAR_THRESHOLD ? 'Apolar' : 'Polar'})`;
-
+                let baseText = `<b>Polaridade: ${sample.polarity}%</b>`;
                 if (showDistance) {
                     const distPx = calculateFinalDistance(sample.polarity, solventPolarityForCalc);
                     const distCm = (distPx / MAX_TRAVEL_DISTANCE) * VIRTUAL_SCALE_CM;
@@ -98,23 +87,37 @@
             });
         };
 
+        /**
+         * LÓGICA DE CÁLCULO FINAL E COMPLETA - Modelo de 3 Zonas
+         */
         const calculateFinalDistance = (samplePolarity, solventPolarity) => {
+            const sampleP = samplePolarity / 100;
+            const solventP = solventPolarity / 100;
             let travelRatio = 0.0;
-            if (samplePolarity < APOLAR_THRESHOLD) {
-                let baseRatio = 0.90;
-                let solventDragFactor = (solventPolarity / 100) * 0.20;
-                travelRatio = baseRatio - solventDragFactor;
+
+            // ZONA 1: Amostra perfeitamente apolar (Regra de Ouro)
+            if (samplePolarity === 0) {
+                travelRatio = 1.0;
+
+            // ZONA 2: Amostra "quase apolar" (1% a 30%) - Aderência ao papel domina
+            } else if (samplePolarity <= APOLAR_ZONE_THRESHOLD) {
+                travelRatio = 1.0 - sampleP;
+
+            // ZONA 3: Amostra polar (> 30%) - Lógica CORRIGIDA de "Força de Eluição"
             } else {
-                const polarityDifference = Math.abs(solventPolarity - samplePolarity);
-                if (solventPolarity > 60 && polarityDifference <= 10) {
-                    travelRatio = 0.98;
-                } else {
-                    const attractionToPaper = samplePolarity / 100;
-                    const attractionToSolvent = 1.0 - Math.abs((solventPolarity / 100) - (samplePolarity / 100));
-                    travelRatio = attractionToSolvent / (attractionToSolvent + attractionToPaper + 0.01);
-                }
+                // A potência do solvente agora tem um valor base para nunca ser zero.
+                const solventPower = 0.05 + (solventP * 0.95);
+                
+                // A afinidade ("engate") é máxima quando as polaridades são iguais.
+                const affinity = 1.0 - Math.abs(solventP - sampleP);
+                
+                // A "Força de Eluição" final que determina o deslocamento.
+                travelRatio = solventPower * affinity;
             }
+            
+            // Trava de segurança final para evitar qualquer ultrapassagem visual.
             travelRatio = Math.max(0, Math.min(0.995, travelRatio));
+            
             return travelRatio * MAX_TRAVEL_DISTANCE;
         };
         
@@ -199,7 +202,6 @@
             resetSimulation();
         };
 
-        // --- Event Listeners ---
         startStopButton.addEventListener('click', () => {
             if (startStopButton.textContent.includes('Reiniciar')) {
                 resetSimulation();
@@ -207,27 +209,27 @@
                 startChromatography();
             }
         });
-
-        // Event listener do slider ATUALIZADO para chamar a nova função de preenchimento
         solventPolaritySlider.addEventListener('input', (e) => {
             solventPolarityValue.textContent = e.target.value;
             updateSliderBackground(e.target);
         });
-
         addSampleButton.addEventListener('click', addSample);
         removeAllSamplesBtn.addEventListener('click', removeAll);
 
         const initialize = () => {
             createScale();
+            // Amostras iniciais para demonstrar a lógica de 3 zonas.
             samples = [
-                { id: nextSampleId++, color: SAMPLE_COLORS[0], polarity: 90 },
-                { id: nextSampleId++, color: SAMPLE_COLORS[1], polarity: 65 },
-                { id: nextSampleId++, color: SAMPLE_COLORS[2], polarity: 15 },
+                { id: nextSampleId++, color: SAMPLE_COLORS[0], polarity: 0 },   // Zona 1: Teste da regra de ouro.
+                { id: nextSampleId++, color: SAMPLE_COLORS[1], polarity: 20 },  // Zona 2: Teste da aderência.
+                { id: nextSampleId++, color: SAMPLE_COLORS[2], polarity: 50 },  // Zona 3: Teste do caso 50/100 -> 5cm e 50/0 -> >0cm
+                { id: nextSampleId++, color: SAMPLE_COLORS[3], polarity: 100 }, // Zona 3: Teste do caso 100/100 -> 10cm.
             ];
             renderSpots();
             updateSampleLegend();
             resetSimulation();
-            updateSliderBackground(solventPolaritySlider); // <-- Chama a função para o estado inicial
+            updateSliderBackground(solventPolaritySlider);
         };
         initialize();
     });
+
