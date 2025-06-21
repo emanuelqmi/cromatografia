@@ -2,7 +2,7 @@
 
 Este projeto é uma simulação interativa e educacional do processo de cromatografia em papel, desenvolvida para ajudar estudantes e professores a visualizar os conceitos de polaridade, fases móvel e estacionária, e fator de retenção (Rf) de uma maneira dinâmica e prática.
 
-A aplicação foi construída utilizando apenas tecnologias web padrão (HTML, CSS e JavaScript), sendo leve, responsiva e acessível diretamente pelo navegador, sem necessidade de instalação. A aplicação foi inteiramente construída em colaboração com o **Gemini Pro**, uma Inteligência Artificial do Google, demonstrando o potencial de IAs como ferramentas de desenvolvimento e criação para fins educacionais.
+Essa aplicação foi construída utilizando apenas tecnologias web padrão (HTML, CSS e JavaScript), sendo leve, responsiva e acessível diretamente pelo navegador, sem necessidade de instalação. Além disso, é importante ressaltar que todo os códigos do projeto foram criados pelo Gemini Pro - versão 2.5, a Inteligência Artificial do Google, servindo como um exemplo prático do potencial da IA no desenvolvimento de ferramentas educacionais.
 
 ## 🧪 Demonstração Online
 
@@ -44,7 +44,7 @@ Você pode acessar a simulação diretamente no seu navegador através do GitHub
 -   **HTML5:** Estrutura semântica do projeto.
 -   **CSS3:** Estilização, layout responsivo com Flexbox, animações com `transition` e customização de elementos com variáveis e pseudo-elementos.
 -   **JavaScript (ES6+):** Toda a lógica da simulação, manipulação do DOM e interatividade.
--   Gemnine PRO - Versão 2.5
+-   **Gemnine PRO - Versão 2.5**
 
 ## ✍️ Autores
 
