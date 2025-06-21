@@ -1,4 +1,3 @@
-    // JAVASCRIPT
     document.addEventListener('DOMContentLoaded', () => {
         // --- DOM Elements ---
         const paperContainer = document.querySelector('.paper-container');
@@ -12,24 +11,35 @@
         const sampleLegendList = document.getElementById('sample-legend-list');
         const controls = [startStopButton, solventPolaritySlider, addSampleButton, newSamplePolarityInput, removeAllSamplesBtn];
 
-        // --- Simulation State ---
+        // --- Simulation State & Constants ---
         let samples = [];
         let nextSampleId = 0;
         const MAX_SAMPLES = 8;
         const SAMPLE_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#f1c40f', '#e67e22', '#1abc9c', '#7f8c8d'];
         let isRunning = false;
-
-        // --- Constants ---
         const PAPER_HEIGHT = 500;
         const ORIGIN_LINE_BOTTOM = 60;
         const MAX_TRAVEL_DISTANCE = PAPER_HEIGHT - ORIGIN_LINE_BOTTOM - 25;
         const VIRTUAL_SCALE_CM = 7.0;
         const APOLAR_THRESHOLD = 40;
 
+        /**
+         * NOVA FUNÇÃO: Atualiza o fundo do slider para o efeito de "preenchimento".
+         */
+        const updateSliderBackground = (slider) => {
+            const min = slider.min;
+            const max = slider.max;
+            const value = slider.value;
+            const percentage = ((value - min) / (max - min)) * 100;
+            
+            // Define o gradiente de cor para preencher a trilha do slider
+            const color = `linear-gradient(to right, var(--accent-color) ${percentage}%, var(--primary-bg) ${percentage}%)`;
+            slider.style.background = color;
+        };
+
         const createScale = () => {
             const scaleContainer = document.createElement('div');
             scaleContainer.className = 'scale';
-            
             for (let cm = 0; cm <= VIRTUAL_SCALE_CM; cm++) {
                 const positionPx = ORIGIN_LINE_BOTTOM + (cm / VIRTUAL_SCALE_CM) * MAX_TRAVEL_DISTANCE;
                 const tick = document.createElement('div');
@@ -97,31 +107,24 @@
             } else {
                 const polarityDifference = Math.abs(solventPolarity - samplePolarity);
                 if (solventPolarity > 60 && polarityDifference <= 10) {
-                    travelRatio = 0.95;
+                    travelRatio = 0.98;
                 } else {
                     const attractionToPaper = samplePolarity / 100;
                     const attractionToSolvent = 1.0 - Math.abs((solventPolarity / 100) - (samplePolarity / 100));
                     travelRatio = attractionToSolvent / (attractionToSolvent + attractionToPaper + 0.01);
                 }
             }
-            travelRatio = Math.max(0, Math.min(1, travelRatio));
+            travelRatio = Math.max(0, Math.min(0.995, travelRatio));
             return travelRatio * MAX_TRAVEL_DISTANCE;
         };
-
-        /**
-         * FUNÇÃO ATUALIZADA: Gerencia o estado dos controles da UI.
-         * @param {'idle' | 'running' | 'finished'} state - O estado atual da simulação.
-         */
+        
         const setControlsState = (state) => {
             if (state === 'running') {
-                // Desabilita TODOS os controles enquanto a simulação está em execução.
                 controls.forEach(control => control.disabled = true);
             } else if (state === 'finished') {
-                // Desabilita todos, EXCETO o botão principal (que agora é "Reiniciar").
                 controls.forEach(control => control.disabled = true);
                 startStopButton.disabled = false;
-            } else { // 'idle' state
-                // Habilita TODOS os controles.
+            } else {
                 controls.forEach(control => control.disabled = false);
             }
         };
@@ -129,15 +132,12 @@
         const startChromatography = () => {
             if (isRunning || samples.length === 0) return;
             isRunning = true;
-            setControlsState('running'); // <-- MUDANÇA AQUI
+            setControlsState('running');
             startStopButton.textContent = 'Executando...';
-
             const solventFront = document.createElement('div');
             solventFront.className = 'solvent-front';
             paper.appendChild(solventFront);
-            
             void paper.offsetWidth;
-
             setTimeout(() => {
                 const solventPolarity = parseInt(solventPolaritySlider.value);
                 solventFront.style.bottom = `${ORIGIN_LINE_BOTTOM + MAX_TRAVEL_DISTANCE}px`;
@@ -147,11 +147,10 @@
                     spotElement.style.bottom = `${ORIGIN_LINE_BOTTOM + travelDistance}px`;
                 });
             }, 100);
-
             setTimeout(() => {
                 isRunning = false;
                 startStopButton.textContent = 'Reiniciar Simulação';
-                setControlsState('finished'); // <-- MUDANÇA AQUI
+                setControlsState('finished');
                 updateSampleLegend(true);
             }, 6100);
         };
@@ -162,16 +161,14 @@
                 spot.style.transition = 'bottom 0.5s ease';
                 spot.style.bottom = `calc(var(--origin-line-bottom) - var(--spot-size) / 2)`;
             });
-            
             setTimeout(() => {
                  paper.querySelectorAll('.sample-spot').forEach(spot => {
-                    spot.style.transition = 'bottom 6s ease-in-out';
+                    spot.style.transition = 'bottom 6s linear';
                 });
             }, 500);
-
             startStopButton.textContent = 'Iniciar Cromatografia';
             isRunning = false;
-            setControlsState('idle'); // <-- MUDANÇA AQUI
+            setControlsState('idle');
             updateSampleLegend(false);
         };
         
@@ -192,7 +189,6 @@
             };
             samples.push(newSample);
             renderSpots();
-            // A chamada para resetSimulation() já cuida de reabilitar os controles.
             resetSimulation();
         };
         
@@ -200,11 +196,10 @@
             samples = [];
             nextSampleId = 0;
             renderSpots();
-            // A chamada para resetSimulation() já cuida de reabilitar os controles.
             resetSimulation();
         };
 
-        // Event Listeners (sem alterações)
+        // --- Event Listeners ---
         startStopButton.addEventListener('click', () => {
             if (startStopButton.textContent.includes('Reiniciar')) {
                 resetSimulation();
@@ -212,9 +207,13 @@
                 startChromatography();
             }
         });
+
+        // Event listener do slider ATUALIZADO para chamar a nova função de preenchimento
         solventPolaritySlider.addEventListener('input', (e) => {
             solventPolarityValue.textContent = e.target.value;
+            updateSliderBackground(e.target);
         });
+
         addSampleButton.addEventListener('click', addSample);
         removeAllSamplesBtn.addEventListener('click', removeAll);
 
@@ -228,6 +227,7 @@
             renderSpots();
             updateSampleLegend();
             resetSimulation();
+            updateSliderBackground(solventPolaritySlider); // <-- Chama a função para o estado inicial
         };
         initialize();
     });
