@@ -46,6 +46,6 @@ Você pode acessar a simulação diretamente no seu navegador através do GitHub
 -   **JavaScript (ES6+):** Toda a lógica da simulação, manipulação do DOM e interatividade.
 -   Gemnine PRO - Versão 2.5
 
-## ✍️ Autor e Agradecimentos
+## ✍️ Autores
 
 Este projeto foi idealizado por Tiara Costa e Emanuel Dornelas.
